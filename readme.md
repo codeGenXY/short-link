@@ -24,12 +24,19 @@
 # 2、系统架构
 ![image.png](https://cdn.nlark.com/yuque/0/2021/png/2437188/1639900397537-d8205269-2d72-4e46-960d-9fd5731a3857.png#clientId=u460061b9-b52c-4&crop=0&crop=0&crop=1&crop=1&from=paste&height=382&id=u145f227a&margin=%5Bobject%20Object%5D&name=image.png&originHeight=519&originWidth=999&originalType=binary&ratio=1&rotation=0&showTitle=false&size=74767&status=done&style=none&taskId=ucfdbd0ff-ebf3-4c72-978a-8bc2a18decd&title=&width=734.5)
 解释：
+
 1、为了提高短域名的服务，采用分布式的架构
+
 2、每台服务从ZK获取自己唯一的ID,最前面可用Nginx等负载均衡器进行分流
+
 3、每个服务里面有N个发号器，发号器的实现可以有多种实现。发号器实质是一个码号产生器，可用UUID、HASH、自增等编码方式，发号器的号码生成规则可以使用单一或组合
+
 4、选择器从N个发号器中选择一个作为T，由T获取一个或多个编码返回
+
 5、最后由存储服务将长、短对应关系进行存储（**本文简单使用guava缓存存储**），提供后续的查询
+
 6、**对于8位短链符号，机器编号占N位，发号器编号暂M位，号码占用K位,满足M+N+K=8**
+
 # 3、具体实现&核心算法
 ### 3.1 自增发号器实现(有缓存)
 ```java
@@ -142,18 +149,25 @@ public NumberGenerator selectOneWeight(List<NumberGenerator> numberGeneratorList
 
 # 4、单元&功能测试
 **配置说明（application.properties）：**
+
 #每位编号的进制
 app.config.redix = 62
+
 #短链接总长度
 app.config.totalBit = 8
+
 #机器占位
 app.config.machineBit = 1
+
 #计数器占位
 app.config.counterBit = 1
+
 #缓存过期时长
 app.config.expireSec = 3600
+
 #发号器选择（emit、counter）
 app.model = emit
+
 **特变注意,还需要新建一个machineId文件,里面是当前微服务的ID。这里可以加拓展，用zooKeeper记录机器ID每台服务启动时去zookeeper获取**
 ### 4.1 项目目录
 ![image.png](https://cdn.nlark.com/yuque/0/2021/png/2437188/1639904201496-dd1cec88-fc83-4837-bada-7f6ce73348bb.png#clientId=u7d376f79-0c33-4&crop=0&crop=0&crop=1&crop=1&from=paste&height=350&id=u8ac546c1&margin=%5Bobject%20Object%5D&name=image.png&originHeight=1294&originWidth=1062&originalType=binary&ratio=1&rotation=0&showTitle=false&size=826593&status=done&style=none&taskId=u7da5da99-7908-4a0c-880e-b3580a9f15e&title=&width=287)
